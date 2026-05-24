@@ -1,168 +1,69 @@
-from pathlib import Path
-from zipfile import ZipFile
-from docx import Document
+Perfect, you’re stepping into **Exploratory Data Analysis (EDA)** — the stage where you interrogate your dataset before diving into modeling. Let’s break down the process with actionable steps and examples:
+
+---
+
+### 🔍 1. Ask Meaningful Questions
+Before touching the data, frame questions like:
+- What is the distribution of key variables?  
+- Are there missing values or outliers?  
+- How do variables relate to each other?  
+- Are there seasonal or time-based trends?  
+- Does the dataset support the hypothesis I want to test?
+
+---
+
+### 📂 2. Explore Data Structure
+Use Python libraries like **pandas** and **numpy**:
+```python
 import pandas as pd
-import matplotlib.pyplot as plt
-import numpy as np
 
-# =========================
-# TASK 2 - EDA PROJECT
-# =========================
-eda_base = Path("/mnt/data/CodeAlpha_EDA_Project")
-eda_base.mkdir(exist_ok=True)
+df = pd.read_csv("dataset.csv")
 
-np.random.seed(10)
+# Quick overview
+print(df.shape)          # rows, columns
+print(df.info())         # data types, nulls
+print(df.describe())     # summary stats
+```
+- Identify variable types: categorical, numerical, datetime.  
+- Check for duplicates or inconsistent formatting.
 
-df = pd.DataFrame({
-    "Student_ID": range(1, 101),
-    "Hours_Studied": np.random.randint(1, 10, 100),
-    "Attendance": np.random.randint(60, 100, 100),
-    "Marks": np.random.randint(40, 100, 100)
-})
+---
 
-df.to_csv(eda_base / "student_performance.csv", index=False)
+### 📈 3. Identify Trends, Patterns & Anomalies
+- **Univariate analysis**: histograms, boxplots for single variables.  
+- **Bivariate analysis**: scatterplots, correlation heatmaps.  
+- Example:
+  ```python
+  import seaborn as sns
+  import matplotlib.pyplot as plt
 
-# Plot
-plt.figure(figsize=(6,4))
-plt.scatter(df["Hours_Studied"], df["Marks"])
-plt.xlabel("Hours Studied")
-plt.ylabel("Marks")
-plt.title("Hours Studied vs Marks")
-plt.tight_layout()
-plt.savefig(eda_base / "study_vs_marks.png")
-plt.close()
+  sns.histplot(df["age"], bins=20)
+  sns.boxplot(x=df["salary"])
+  sns.heatmap(df.corr(), annot=True, cmap="coolwarm")
+  plt.show()
+  ```
+- Spot anomalies: unusually high/low values, skewed distributions.
 
-# Python code
-eda_code = """
-import pandas as pd
-import matplotlib.pyplot as plt
+---
 
-df = pd.read_csv('student_performance.csv')
+### 📊 4. Test Hypotheses & Validate Assumptions
+- Example hypothesis: *“Older customers spend more money.”*  
+  ```python
+  from scipy.stats import pearsonr
 
-print(df.head())
-print(df.info())
-print(df.describe())
+  corr, p_value = pearsonr(df["age"], df["spending"])
+  print("Correlation:", corr, "P-value:", p_value)
+  ```
+- Use statistical tests (t-test, chi-square, ANOVA) depending on variable types.  
+- Validate assumptions: normality, independence, variance homogeneity.
 
-plt.scatter(df['Hours_Studied'], df['Marks'])
-plt.xlabel('Hours Studied')
-plt.ylabel('Marks')
-plt.title('Hours Studied vs Marks')
-plt.show()
-"""
+---
 
-(eda_base / "eda_analysis.py").write_text(eda_code)
+### ⚠️ 5. Detect Data Issues
+Common problems:
+- Missing values → imputation or removal.  
+- Outliers → investigate if errors or genuine extremes.  
+- Inconsistent categories → standardize labels.  
+- Data leakage → ensure target variable isn’t accidentally included in predictors.
 
-# README
-(eda_base / "README.md").write_text("""
-# EDA Project
 
-## Technologies
-- Python
-- Pandas
-- Matplotlib
-
-## Files
-- student_performance.csv
-- eda_analysis.py
-- study_vs_marks.png
-- report.docx
-
-## Run
-pip install pandas matplotlib
-
-python eda_analysis.py
-""")
-
-# Report
-doc = Document()
-doc.add_heading("EDA Project Report", level=1)
-doc.add_paragraph("Exploratory Data Analysis on student performance dataset.")
-doc.add_paragraph("Tools Used: Python, Pandas, Matplotlib")
-doc.add_paragraph("The project analyzes relationships between study hours and marks.")
-doc.save(eda_base / "report.docx")
-
-# ZIP
-eda_zip = "/mnt/data/CodeAlpha_EDA_Project.zip"
-with ZipFile(eda_zip, 'w') as zipf:
-    for file in eda_base.rglob("*"):
-        zipf.write(file, arcname=file.relative_to(eda_base))
-
-# =========================
-# TASK 3 - DATA VISUALIZATION
-# =========================
-viz_base = Path("/mnt/data/CodeAlpha_Data_Visualization_Project")
-viz_base.mkdir(exist_ok=True)
-
-sales_df = pd.DataFrame({
-    "Month": ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-    "Sales": [1200, 1500, 1700, 1600, 2100, 2500]
-})
-
-sales_df.to_csv(viz_base / "sales_data.csv", index=False)
-
-# Chart
-plt.figure(figsize=(6,4))
-plt.plot(sales_df["Month"], sales_df["Sales"], marker='o')
-plt.xlabel("Month")
-plt.ylabel("Sales")
-plt.title("Monthly Sales Trend")
-plt.tight_layout()
-plt.savefig(viz_base / "sales_trend.png")
-plt.close()
-
-# Visualization code
-viz_code = """
-import pandas as pd
-import matplotlib.pyplot as plt
-
-df = pd.read_csv('sales_data.csv')
-
-print(df)
-
-plt.plot(df['Month'], df['Sales'], marker='o')
-plt.xlabel('Month')
-plt.ylabel('Sales')
-plt.title('Monthly Sales Trend')
-plt.show()
-"""
-
-(viz_base / "visualization.py").write_text(viz_code)
-
-# README
-(viz_base / "README.md").write_text("""
-# Data Visualization Project
-
-## Technologies
-- Python
-- Pandas
-- Matplotlib
-
-## Files
-- sales_data.csv
-- visualization.py
-- sales_trend.png
-- report.docx
-
-## Run
-pip install pandas matplotlib
-
-python visualization.py
-""")
-
-# Report
-doc2 = Document()
-doc2.add_heading("Data Visualization Project Report", level=1)
-doc2.add_paragraph("Visualization of monthly sales data.")
-doc2.add_paragraph("Tools Used: Python, Pandas, Matplotlib")
-doc2.add_paragraph("The graph shows increasing sales trends.")
-doc2.save(viz_base / "report.docx")
-
-# ZIP
-viz_zip = "/mnt/data/CodeAlpha_Data_Visualization_Project.zip"
-with ZipFile(viz_zip, 'w') as zipf:
-    for file in viz_base.rglob("*"):
-        zipf.write(file, arcname=file.relative_to(viz_base))
-
-print("Projects created successfully!")
-print(eda_zip)
-print(viz_zip)
